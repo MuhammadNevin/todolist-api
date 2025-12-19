@@ -1,0 +1,39 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "ToDo List API",
+        "version": "1.0.0",
+        "description": "API for managing a simple ToDo list.",
+        "termsOfService": "https://example.com/terms/",
+        "contact": {
+            "name": "Muhammad Nevin",
+            "email": "nevin.muhammad@gmail.com",
+            "url": "https://github.com/MuhammadNevin"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        }
+    },
+    "servers": [
+        {
+            "url": "https://{environment}.programmerzamannow.com/api/v1",
+            "description": "API Server Environment",
+            "variables": {
+                "environment": {
+                    "default": "dev",
+                    "enum": [
+                        "dev",
+                        "qa",
+                        "prod"
+                    ]
+                }
+            }
+        }
+    ],
+    "externalDocs": {
+        "description": "Find out more about ToDo List API",
+        "url": "https://github.com/MuhammadNevin/todolist-api"
+    },
+    "paths": {}
+}
