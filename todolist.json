@@ -38,51 +38,196 @@
     "paths": {
         "/todos": {
             "get": {
+                "security": [{"TodolistAuth": []}],
+                "tags": ["todolist"],
                 "summary": "Get all ToDo items",
+                "description": "Only return active ToDo items, unless query param 'status' is set to 'all'",
                 "responses": {
                     "200": {
-                        "description": "A list of ToDo items",
+                        "description": "Successfully retrieved list of ToDo items",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
+                                    "$ref": "#/components/schemas/ArrayTodo"
+                                },
+                                "examples": {
+                                    "example1": {
+                                        "summary": "Example response with one ToDo item",
+                                        "value": [
+                                            {
+                                                "id": "12345",
+                                                "title": "Learn JavaScript",
+                                                "description": "Complete the JavaScript course on programmingzamannow",
+                                                "dueDate": "2024-12-31T23:59:59Z",
+                                                "priority": "high",
+                                                "status": "pending",
+                                                "tags": ["programming", "javascript"]
+                                            }
+                                        ]
+                                    },
+                                    "example2": {
+                                        "summary": "Example response with multiple ToDo items",
+                                        "value": [
+                                            {
+                                                "id": "12345",
+                                                "title": "Learn JavaScript",
+                                                "description": "Complete the JavaScript course on programmingzamannow",
+                                                "dueDate": "2024-12-31T23:59:59Z",
+                                                "priority": "high",
+                                                "status": "pending",
+                                                "tags": ["programming", "javascript"]
+                                            },
+                                            {
+                                                "id": "67890",
+                                                "title": "Learn Python",
+                                                "description": "Finish the Python tutorial on programmingzamannow",
+                                                "dueDate": "2024-11-30T23:59:59Z",
+                                                "priority": "medium",
+                                                "status": "completed",
+                                                "tags": ["programming", "python"]
+                                            }
+                                        ]
                                     }
                                 }
                             }
                         }
                     }
-                }
+                },
+                "parameters": [
+                    {
+                        "name": "title",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "examples": {
+                            "Javascript" : {
+                                "summary": "Filter by title containing 'Javascript'",
+                                "value": "Javascript"
+                            },
+                            "python" : {
+                                "summary": "Filter by title containing 'python'",
+                                "value": "python"
+                            }
+                        },
+                        "description": "Filter ToDo items by title"
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "all",
+                                "pending",
+                                "completed"
+                            ],
+                            "default": "pending"
+                        },
+                        "description": "Filter ToDo items by status"
+                    }
+                ]
             },
             "post": {
+                "security": [{"TodolistAuth": []}],
+
+                "tags": ["todolist"],
                 "summary": "Create a new ToDo item",
+                "description": "Creates a new ToDo item with the provided details",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
+                                "$ref": "#/components/schemas/CreateOrUpdateToDo"
+                            },
+                            "examples": {
+                                "LearnJavascript": {
+                                    "$ref": "#/components/examples/LearnJavascript"
+                                },
+                                "LearnPython": {
+                                    "$ref": "#/components/examples/LearnPython"
+                                }
                             }
                         }
                     }
                 },
                 "responses": {
                     "201": {
-                        "description": "ToDo item created successfully"
+                        "description": "ToDo item created successfully, returns the created item",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/todolist"
+                                },
+                                "examples": {
+                                    "created-item": {
+                                        "summary": "Example of created ToDo item",
+                                        "value": {
+                                            "id": "12345",
+                                            "title": "Learn JavaScript",
+                                            "description": "Complete the JavaScript course on programmingzamannow",
+                                            "dueDate": "2024-12-31T23:59:59Z",
+                                            "priority": "high",
+                                            "status": "pending",
+                                            "tags": ["programming", "javascript"]
+                                        }
+                                    },
+                                    "created-item-2": {
+                                        "summary": "Example of another created ToDo item",
+                                        "value": {
+                                            "id": "67890",
+                                            "title": "Learn Python",
+                                            "description": "Finish the Python tutorial on programmingzamannow",
+                                            "dueDate": "2024-11-30T23:59:59Z",
+                                            "priority": "medium",
+                                            "status": "pending",
+                                            "tags": ["programming", "python"]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Invalid input data"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "invalid-input": {
+                                        "summary": "Invalid input data response",
+                                        "value": {
+                                            "error": "Invalid input data"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
         "/todos/{id}": {
             "get": {
+                "security": [{"TodolistAuth": []}],
+
+                "tags": ["todolist"],
                 "summary": "Get a ToDo item by ID",
+                "description": "Returns a single ToDo item by its ID, 404 if not found",
                 "parameters": [
                     {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
+                        "$ref": "#/components/parameters/todoId"
                     }
                 ],
                 "responses": {
@@ -91,25 +236,96 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "example": "12345"
+                                        },
+                                        "title": {
+                                            "type": "string",
+                                            "example": "Learn JavaScript"
+                                        },
+                                        "description": {
+                                            "type": "string",
+                                            "example": "Complete the JavaScript course on programmingzamannow"
+                                        },
+                                        "dueDate": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2024-12-31T23:59:59Z"
+                                        },
+                                        "priority": {
+                                            "type": "string",
+                                            "enum": ["low", "medium", "high"],
+                                            "example": "high"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "enum": ["pending", "completed"],
+                                            "example": "pending"
+                                        },
+                                        "tags": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": ["programming", "javascript"]
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "example1": {
+                                        "summary": "Example of a ToDo item",
+                                        "value": {
+                                            "id": "12345",
+                                            "title": "Learn JavaScript",
+                                            "description": "Complete the JavaScript course on programmingzamannow",
+                                            "dueDate": "2024-12-31T23:59:59Z",
+                                            "priority": "high",
+                                            "status": "pending",
+                                            "tags": ["programming", "javascript"]
+                                        }
+                                    }
                                 }
                             }
                         }
                     },
                     "404": {
-                        "description": "ToDo item not found"
+                        "description": "ToDo item not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "ToDo item not found"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "not-found": {
+                                        "summary": "ToDo item not found response",
+                                        "value": {
+                                            "error": "ToDo item not found"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
             "put": {
+                "security": [{"TodolistAuth": []}],
+
+                "tags": ["todolist"],
                 "summary": "Update a ToDo item by ID",
+                "description": "Updates an existing ToDo item with the provided details",
                 "parameters": [
                     {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
+                        "$ref": "#/components/parameters/todoId"
                     }
                 ],
                 "requestBody": {
@@ -117,39 +333,294 @@
                     "content": {
                         "application/json": {
                             "schema": {
+                                "$ref": "#/components/schemas/CreateOrUpdateToDo"
+                            },
+                            "examples": {
+                                "update-status": {
+                                    "summary": "Update ToDo item status to completed",
+                                    "value": {
+                                        "status": "completed"
+                                    }
+                                },
+                                "update-priority": {
+                                    "summary": "Update ToDo item priority to high",
+                                    "value": {
+                                        "priority": "high"
+                                    }
+                                }
                             }
                         }
                     }
                 },
                 "responses": {
-                    "200": {
-                        "description": "ToDo item updated successfully"
+                    "201": {
+                        "description": "ToDo item update successfully, returns the updated item",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/todolist"
+                                },
+                                "examples": {
+                                    "created-item": {
+                                        "summary": "Example of created ToDo item",
+                                        "value": {
+                                            "id": "12345",
+                                            "title": "Learn JavaScript",
+                                            "description": "Complete the JavaScript course on programmingzamannow",
+                                            "dueDate": "2024-12-31T23:59:59Z",
+                                            "priority": "high",
+                                            "status": "pending",
+                                            "tags": ["programming", "javascript"]
+                                        }
+                                    },
+                                    "created-item-2": {
+                                        "summary": "Example of another created ToDo item",
+                                        "value": {
+                                            "id": "67890",
+                                            "title": "Learn Python",
+                                            "description": "Finish the Python tutorial on programmingzamannow",
+                                            "dueDate": "2024-11-30T23:59:59Z",
+                                            "priority": "medium",
+                                            "status": "pending",
+                                            "tags": ["programming", "python"]
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "404": {
-                        "description": "ToDo item not found"
+                        "description": "ToDo item not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "ToDo item not found"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "not-found": {
+                                        "summary": "ToDo item not found response",
+                                        "value": {
+                                            "error": "ToDo item not found"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
             "delete": {
+                "security": [{"TodolistAuth": []}],
+
+                "tags": ["todolist"],
                 "summary": "Delete a ToDo item by ID",
                 "parameters": [
                     {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
+                        "$ref": "#/components/parameters/todoId"
                     }
                 ],
                 "responses": {
                     "204": {
-                        "description": "ToDo item deleted successfully"
+                        "description": "ToDo item deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "success": {
+                                        "summary": "Successfully deleted ToDo item",
+                                        "value": {
+                                            "success": true
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "404": {
-                        "description": "ToDo item not found"
+                        "description": "ToDo item not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "ToDo item not found"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "not-found": {
+                                        "summary": "ToDo item not found response",
+                                        "value": {
+                                            "error": "ToDo item not found"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+            }
+        }
+    },
+    "components": {
+        "parameters": {
+            "todoId": {
+                "name": "id",
+                "in": "path",
+                "description": "ID of the ToDo item",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                },
+                "examples": {
+                    "todo-id-12345": {
+                        "summary": "ToDo item ID 12345",
+                        "value": "12345"
+                    },
+                    "todo-id-67890": {
+                        "summary": "ToDo item ID 67890",
+                        "value": "67890"
+                    }
+                }
+            }
+        },
+        "schemas": {
+            "todolist": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "12345"
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Learn JavaScript"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Complete the JavaScript course on programmingzamannow"
+                    },
+                    "dueDate": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-12-31T23:59:59Z"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "enum": ["low", "medium", "high"],
+                        "example": "high"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["pending", "completed"],
+                        "example": "pending"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": ["programming", "javascript", "openapi"]
+                    }
+                }
+            },
+            "CreateOrUpdateToDo": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 50
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "dueDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "enum": [
+                            "low",
+                            "medium",
+                            "high"
+                        ],
+                        "default": "medium"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "completed"
+                        ],
+                        "default": "pending"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    }
+                },
+                "required": ["title", "dueDate", "priority", "status"]
+            },
+            "ArrayTodo": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/todolist"
+                }
+            }
+        },
+        "examples": {
+            "LearnJavascript": {
+                "summary": "Learn Javascript ToDo item",
+                "value": {
+                    "title": "Learn Javascript",
+                    "description": "Complete the Javascript course on programmingzamannow",
+                    "dueDate": "2024-12-31T23:59:59Z",
+                    "priority": "high",
+                    "status": "pending",
+                    "tags": ["programming", "javascript"]
+                }
+            },
+            "LearnPython": {
+                "summary": "Learn Python ToDo item",
+                "value": {
+                    "title": "Learn Python",
+                    "description": "Finish the Python tutorial on programmingzamannow",
+                    "dueDate": "2024-11-30T23:59:59Z",
+                    "priority": "medium",
+                    "status": "pending",
+                    "tags": ["programming", "python"]
+                }
+            }
+        },
+        "securitySchemes": {
+            "TodolistAuth": {
+                "description": "API key needed to access the endpoints",
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-API-KEY"
             }
         }
     }

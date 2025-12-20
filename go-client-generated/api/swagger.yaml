@@ -1,0 +1,552 @@
+openapi: 3.0.3
+info:
+  title: ToDo List API
+  description: API for managing a simple ToDo list.
+  termsOfService: https://example.com/terms/
+  contact:
+    name: Muhammad Nevin
+    url: https://github.com/MuhammadNevin
+    email: nevin.muhammad@gmail.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  version: 1.0.0
+externalDocs:
+  description: Find out more about ToDo List API
+  url: https://github.com/MuhammadNevin/todolist-api
+servers:
+- url: "https://{environment}.programmerzamannow.com/api/v1"
+  description: API Server Environment
+  variables:
+    environment:
+      default: dev
+      enum:
+      - dev
+      - qa
+      - prod
+paths:
+  /todos:
+    get:
+      tags:
+      - todolist
+      summary: Get all ToDo items
+      description: "Only return active ToDo items, unless query param 'status' is\
+        \ set to 'all'"
+      parameters:
+      - name: title
+        in: query
+        description: Filter ToDo items by title
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+        examples:
+          Javascript:
+            summary: Filter by title containing 'Javascript'
+            value: Javascript
+          python:
+            summary: Filter by title containing 'python'
+            value: python
+      - name: status
+        in: query
+        description: Filter ToDo items by status
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: pending
+          enum:
+          - all
+          - pending
+          - completed
+      responses:
+        "200":
+          description: Successfully retrieved list of ToDo items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArrayTodo"
+              examples:
+                example1:
+                  summary: Example response with one ToDo item
+                  value:
+                  - id: "12345"
+                    title: Learn JavaScript
+                    description: Complete the JavaScript course on programmingzamannow
+                    dueDate: 2024-12-31T23:59:59Z
+                    priority: high
+                    status: pending
+                    tags:
+                    - programming
+                    - javascript
+                example2:
+                  summary: Example response with multiple ToDo items
+                  value:
+                  - id: "12345"
+                    title: Learn JavaScript
+                    description: Complete the JavaScript course on programmingzamannow
+                    dueDate: 2024-12-31T23:59:59Z
+                    priority: high
+                    status: pending
+                    tags:
+                    - programming
+                    - javascript
+                  - id: "67890"
+                    title: Learn Python
+                    description: Finish the Python tutorial on programmingzamannow
+                    dueDate: 2024-11-30T23:59:59Z
+                    priority: medium
+                    status: completed
+                    tags:
+                    - programming
+                    - python
+      security:
+      - TodolistAuth: []
+    post:
+      tags:
+      - todolist
+      summary: Create a new ToDo item
+      description: Creates a new ToDo item with the provided details
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrUpdateToDo"
+            examples:
+              LearnJavascript:
+                $ref: "#/components/examples/LearnJavascript"
+              LearnPython:
+                $ref: "#/components/examples/LearnPython"
+        required: true
+      responses:
+        "201":
+          description: "ToDo item created successfully, returns the created item"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/todolist"
+              examples:
+                created-item:
+                  summary: Example of created ToDo item
+                  value:
+                    id: "12345"
+                    title: Learn JavaScript
+                    description: Complete the JavaScript course on programmingzamannow
+                    dueDate: 2024-12-31T23:59:59Z
+                    priority: high
+                    status: pending
+                    tags:
+                    - programming
+                    - javascript
+                created-item-2:
+                  summary: Example of another created ToDo item
+                  value:
+                    id: "67890"
+                    title: Learn Python
+                    description: Finish the Python tutorial on programmingzamannow
+                    dueDate: 2024-11-30T23:59:59Z
+                    priority: medium
+                    status: pending
+                    tags:
+                    - programming
+                    - python
+        "400":
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/inline_response_400"
+              examples:
+                invalid-input:
+                  summary: Invalid input data response
+                  value:
+                    error: Invalid input data
+      security:
+      - TodolistAuth: []
+  /todos/{id}:
+    get:
+      tags:
+      - todolist
+      summary: Get a ToDo item by ID
+      description: "Returns a single ToDo item by its ID, 404 if not found"
+      parameters:
+      - name: id
+        in: path
+        description: ID of the ToDo item
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        examples:
+          todo-id-12345:
+            summary: ToDo item ID 12345
+            value: "12345"
+          todo-id-67890:
+            summary: ToDo item ID 67890
+            value: "67890"
+      responses:
+        "200":
+          description: A single ToDo item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/inline_response_200"
+              examples:
+                example1:
+                  summary: Example of a ToDo item
+                  value:
+                    id: "12345"
+                    title: Learn JavaScript
+                    description: Complete the JavaScript course on programmingzamannow
+                    dueDate: 2024-12-31T23:59:59Z
+                    priority: high
+                    status: pending
+                    tags:
+                    - programming
+                    - javascript
+        "404":
+          description: ToDo item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/inline_response_404"
+              examples:
+                not-found:
+                  summary: ToDo item not found response
+                  value:
+                    error: ToDo item not found
+      security:
+      - TodolistAuth: []
+    put:
+      tags:
+      - todolist
+      summary: Update a ToDo item by ID
+      description: Updates an existing ToDo item with the provided details
+      parameters:
+      - name: id
+        in: path
+        description: ID of the ToDo item
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        examples:
+          todo-id-12345:
+            summary: ToDo item ID 12345
+            value: "12345"
+          todo-id-67890:
+            summary: ToDo item ID 67890
+            value: "67890"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrUpdateToDo"
+            examples:
+              update-status:
+                summary: Update ToDo item status to completed
+                value:
+                  status: completed
+              update-priority:
+                summary: Update ToDo item priority to high
+                value:
+                  priority: high
+        required: true
+      responses:
+        "201":
+          description: "ToDo item update successfully, returns the updated item"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/todolist"
+              examples:
+                created-item:
+                  summary: Example of created ToDo item
+                  value:
+                    id: "12345"
+                    title: Learn JavaScript
+                    description: Complete the JavaScript course on programmingzamannow
+                    dueDate: 2024-12-31T23:59:59Z
+                    priority: high
+                    status: pending
+                    tags:
+                    - programming
+                    - javascript
+                created-item-2:
+                  summary: Example of another created ToDo item
+                  value:
+                    id: "67890"
+                    title: Learn Python
+                    description: Finish the Python tutorial on programmingzamannow
+                    dueDate: 2024-11-30T23:59:59Z
+                    priority: medium
+                    status: pending
+                    tags:
+                    - programming
+                    - python
+        "404":
+          description: ToDo item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/inline_response_404"
+              examples:
+                not-found:
+                  summary: ToDo item not found response
+                  value:
+                    error: ToDo item not found
+      security:
+      - TodolistAuth: []
+    delete:
+      tags:
+      - todolist
+      summary: Delete a ToDo item by ID
+      parameters:
+      - name: id
+        in: path
+        description: ID of the ToDo item
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        examples:
+          todo-id-12345:
+            summary: ToDo item ID 12345
+            value: "12345"
+          todo-id-67890:
+            summary: ToDo item ID 67890
+            value: "67890"
+      responses:
+        "204":
+          description: ToDo item deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/inline_response_204"
+              examples:
+                success:
+                  summary: Successfully deleted ToDo item
+                  value:
+                    success: true
+        "404":
+          description: ToDo item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/inline_response_404"
+              examples:
+                not-found:
+                  summary: ToDo item not found response
+                  value:
+                    error: ToDo item not found
+      security:
+      - TodolistAuth: []
+components:
+  schemas:
+    todolist:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "12345"
+        title:
+          type: string
+          example: Learn JavaScript
+        description:
+          type: string
+          example: Complete the JavaScript course on programmingzamannow
+        dueDate:
+          type: string
+          format: date-time
+          example: 2024-12-31T23:59:59Z
+        priority:
+          type: string
+          example: high
+          enum:
+          - low
+          - medium
+          - high
+        status:
+          type: string
+          example: pending
+          enum:
+          - pending
+          - completed
+        tags:
+          type: array
+          example:
+          - programming
+          - javascript
+          - openapi
+          items:
+            type: string
+      example:
+        dueDate: 2024-12-31T23:59:59Z
+        description: Complete the JavaScript course on programmingzamannow
+        id: "12345"
+        title: Learn JavaScript
+        priority: high
+        status: pending
+        tags:
+        - programming
+        - javascript
+        - openapi
+    CreateOrUpdateToDo:
+      required:
+      - dueDate
+      - priority
+      - status
+      - title
+      type: object
+      properties:
+        title:
+          maxLength: 50
+          minLength: 1
+          type: string
+        description:
+          maxLength: 255
+          type: string
+        dueDate:
+          type: string
+          format: date-time
+        priority:
+          type: string
+          default: medium
+          enum:
+          - low
+          - medium
+          - high
+        status:
+          type: string
+          default: pending
+          enum:
+          - pending
+          - completed
+        tags:
+          minItems: 1
+          type: array
+          items:
+            minLength: 1
+            type: string
+    ArrayTodo:
+      type: array
+      items:
+        $ref: "#/components/schemas/todolist"
+      x-schema-name: ArrayTodo
+    inline_response_400:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Invalid input data
+    inline_response_200:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "12345"
+        title:
+          type: string
+          example: Learn JavaScript
+        description:
+          type: string
+          example: Complete the JavaScript course on programmingzamannow
+        dueDate:
+          type: string
+          format: date-time
+          example: 2024-12-31T23:59:59Z
+        priority:
+          type: string
+          example: high
+          enum:
+          - low
+          - medium
+          - high
+        status:
+          type: string
+          example: pending
+          enum:
+          - pending
+          - completed
+        tags:
+          type: array
+          example:
+          - programming
+          - javascript
+          items:
+            type: string
+      example:
+        dueDate: 2024-12-31T23:59:59Z
+        description: Complete the JavaScript course on programmingzamannow
+        id: "12345"
+        title: Learn JavaScript
+        priority: high
+        status: pending
+        tags:
+        - programming
+        - javascript
+    inline_response_404:
+      type: object
+      properties:
+        error:
+          type: string
+          example: ToDo item not found
+    inline_response_204:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+      example:
+        success: true
+  parameters:
+    todoId:
+      name: id
+      in: path
+      description: ID of the ToDo item
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+      examples:
+        todo-id-12345:
+          summary: ToDo item ID 12345
+          value: "12345"
+        todo-id-67890:
+          summary: ToDo item ID 67890
+          value: "67890"
+  examples:
+    LearnJavascript:
+      summary: Learn Javascript ToDo item
+      value:
+        title: Learn Javascript
+        description: Complete the Javascript course on programmingzamannow
+        dueDate: 2024-12-31T23:59:59Z
+        priority: high
+        status: pending
+        tags:
+        - programming
+        - javascript
+    LearnPython:
+      summary: Learn Python ToDo item
+      value:
+        title: Learn Python
+        description: Finish the Python tutorial on programmingzamannow
+        dueDate: 2024-11-30T23:59:59Z
+        priority: medium
+        status: pending
+        tags:
+        - programming
+        - python
+  securitySchemes:
+    TodolistAuth:
+      type: apiKey
+      description: API key needed to access the endpoints
+      name: X-API-KEY
+      in: header
